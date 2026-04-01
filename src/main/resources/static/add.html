@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Добавить товар</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container py-5">
+  <div class="card shadow border-0 mx-auto" style="max-width: 450px; border-radius: 20px;">
+    <div class="card-body p-4">
+      <h2 class="mb-4 fw-bold text-center text-success">Новое поступление</h2>
+      <form id="addForm">
+        <div class="mb-3">
+          <label class="form-label fw-bold">Название</label>
+          <input type="text" id="name" class="form-control form-control-lg" placeholder="наименование" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Цена (₸)</label>
+          <input type="number" id="price" class="form-control form-control-lg" placeholder="0" required>
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-bold">Количество</label>
+          <input type="number" id="stock" class="form-control form-control-lg" placeholder="0" required>
+        </div>
+        <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill">Добавить в базу</button>
+        <a href="index.html" class="btn btn-link w-100 mt-2 text-decoration-none text-muted">Вернуться назад</a>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('addForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const product = {
+      name: document.getElementById('name').value,
+      price: parseFloat(document.getElementById('price').value),
+      stockQuantity: parseInt(document.getElementById('stock').value)
+    };
+
+    const resp = await fetch('/api/products', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(product)
+    });
+
+    if (resp.ok) window.location.href = 'index.html';
+  };
+</script>
+</body>
+</html>

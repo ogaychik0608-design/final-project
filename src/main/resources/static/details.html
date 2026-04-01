@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Детали товара</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+<div class="container py-5 text-center">
+  <div class="card shadow border-0 mx-auto" style="max-width: 550px; border-radius: 20px;">
+    <div class="card-body p-5">
+      <h1 id="detName" class="display-6 fw-bold mb-2"></h1>
+      <p id="detPrice" class="h2 text-success mb-4 fw-bold"></p>
+
+      <div class="bg-light p-3 rounded-4 mb-4">
+        <p class="text-muted mb-1">Текущий запас:</p>
+        <h3 id="detStock" class="fw-bold mb-3"></h3>
+        <div class="btn-group w-100">
+          <button class="btn btn-outline-secondary" onclick="updateStock(-1)">-1</button>
+          <button class="btn btn-outline-secondary" onclick="updateStock(1)">+1</button>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between gap-2">
+        <a href="index.html" class="btn btn-secondary rounded-pill px-4">Назад</a>
+        <button onclick="deleteMe()" class="btn btn-danger rounded-pill px-4">Удалить из базы</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const productId = new URLSearchParams(window.location.search).get('id');
+
+  async function loadDetails() {
+    const res = await fetch(`/api/products/${productId}`);
+    const p = await res.json();
+    document.getElementById('detName').innerText = p.name;
+    document.getElementById('detPrice').innerText = p.price.toLocaleString('ru-KZ') + " ₸";
+    document.getElementById('detStock').innerText = p.stockQuantity + " шт.";
+  }
+
+  async function updateStock(val) {
+    await fetch(`/api/products/${productId}/stock?amount=${val}`, { method: 'PATCH' });
+    loadDetails();
+  }
+
+  async function deleteMe() {
+    if(confirm('Вы действительно хотите удалить этот товар?')) {
+      await fetch(`/api/products/${productId}`, { method: 'DELETE' });
+      window.location.href = 'index.html';
+    }
+  }
+  loadDetails();
+</script>
+</body>
+</html>
