@@ -1,19 +1,17 @@
 package com.example.demo.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
 @Table(name = "categories")
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 
@@ -26,5 +24,10 @@ public class Category {
     @ManyToMany(mappedBy = "categories")
     @JsonIgnoreProperties("categories")
     private Set<Product> products = new HashSet<>();
+
+    @Override
+    public String toString() {
+        return "Category{id=" + id + ", title='" + title + "'}";
+    }
 
 }

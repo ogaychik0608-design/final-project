@@ -76,7 +76,6 @@
     const searchInput = document.getElementById('searchInput');
     const query = searchInput ? searchInput.value.trim() : "";
 
-    // Формируем URL. Если поиск пустой - шлем только пагинацию
     let url = `/api/products?page=${page}&size=6`;
     if (query) {
       url += `&search=${encodeURIComponent(query)}`;
@@ -95,21 +94,19 @@
       const data = await response.json();
       console.log("Данные от сервера:", data);
 
-      // В Pageable данные всегда лежат в data.content
       const products = data.content || [];
       const list = document.getElementById('productList');
 
       if (products.length === 0) {
         list.innerHTML = `
                     <div class="col-12 text-center py-5">
-                        <h3 class="text-muted">На складе пока пусто 📦</h3>
+                        <h3 class="text-muted">На складе пока пусто</h3>
                         <p>Добавьте первый товар, чтобы он появился в списке.</p>
                     </div>`;
         document.getElementById('pagination').innerHTML = '';
         return;
       }
 
-      // Отрисовка списка
       list.innerHTML = products.map(p => `
                 <div class="col">
                     <div class="card product-card shadow-sm">
@@ -150,19 +147,16 @@
     }
 
     let html = '';
-    // Кнопка назад
     html += `<li class="page-item ${current === 0 ? 'disabled' : ''}">
                     <a class="page-link" onclick="loadProducts(${current - 1})">Назад</a>
                  </li>`;
 
-    // Номера страниц
     for (let i = 0; i < total; i++) {
       html += `<li class="page-item ${i === current ? 'active' : ''}">
                         <a class="page-link" onclick="loadProducts(${i})">${i + 1}</a>
                      </li>`;
     }
 
-    // Кнопка вперед
     html += `<li class="page-item ${current === total - 1 ? 'disabled' : ''}">
                     <a class="page-link" onclick="loadProducts(${current + 1})">Вперед</a>
                  </li>`;
@@ -170,7 +164,6 @@
     pag.innerHTML = html;
   }
 
-  // Запуск при загрузке страницы
   document.addEventListener('DOMContentLoaded', () => {
     loadProducts(0);
   });
