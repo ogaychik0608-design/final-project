@@ -2,51 +2,140 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Добавить товар</title>
+  <title>MyStore KZ — Управление товаром</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { background-color: #f4f7f6; font-family: 'Inter', sans-serif; padding: 20px; }
+    .form-container {
+      background: white; border-radius: 20px; padding: 40px;
+      max-width: 600px; margin: 40px auto;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+    .btn-save { border-radius: 12px; font-weight: 700; padding: 12px; }
+    .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+  </style>
 </head>
-<body class="bg-light">
-<div class="container py-5">
-  <div class="card shadow border-0 mx-auto" style="max-width: 450px; border-radius: 20px;">
-    <div class="card-body p-4">
-      <h2 class="mb-4 fw-bold text-center text-success">Новое поступление</h2>
-      <form id="addForm">
-        <div class="mb-3">
-          <label class="form-label fw-bold">Название</label>
-          <input type="text" id="name" class="form-control form-control-lg" placeholder="наименование" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-bold">Цена (₸)</label>
-          <input type="number" id="price" class="form-control form-control-lg" placeholder="0" required>
-        </div>
-        <div class="mb-4">
-          <label class="form-label fw-bold">Количество</label>
-          <input type="number" id="stock" class="form-control form-control-lg" placeholder="0" required>
-        </div>
-        <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill">Добавить в базу</button>
-        <a href="index.html" class="btn btn-link w-100 mt-2 text-decoration-none text-muted">Вернуться назад</a>
-      </form>
-    </div>
+<body>
+
+<div class="form-container">
+  <div class="header-area">
+    <h2 class="fw-bold m-0" id="page-title">📦 Новый товар</h2>
+    <a href="index.html" class="btn btn-outline-secondary btn-sm px-3" style="border-radius: 10px;">Назад</a>
   </div>
+
+  <form id="product-form">
+    <input type="hidden" id="product-id">
+
+    <div class="mb-3">
+      <label class="form-label fw-bold">Название</label>
+      <input type="text" id="name" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label fw-bold">Категория</label>
+      <select id="category-select" class="form-select">
+        <option value="">-- Выберите категорию --</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label fw-bold">Цена (₸)</label>
+        <input type="number" id="price" class="form-control" required>
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label fw-bold">Страна</label>
+        <input type="text" id="originCountry" class="form-control">
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label fw-bold">Характеристики</label>
+      <input type="text" id="specifications" class="form-control" placeholder="Напр: 8GB RAM, 256GB SSD">
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label fw-bold">Фото товара</label>
+      <input type="file" id="image" class="form-control" accept="image/*">
+      <small class="text-muted">При редактировании оставьте пустым, чтобы сохранить текущее фото.</small>
+    </div>
+
+    <button type="submit" id="submit-btn" class="btn btn-primary w-100 btn-save">Сохранить товар</button>
+  </form>
 </div>
 
 <script>
-  document.getElementById('addForm').onsubmit = async (e) => {
-    e.preventDefault();
-    const product = {
-      name: document.getElementById('name').value,
-      price: parseFloat(document.getElementById('price').value),
-      stockQuantity: parseInt(document.getElementById('stock').value)
-    };
+  const urlParams = new URLSearchParams(window.location.search);
+  const editId = urlParams.get('id');
 
-    const resp = await fetch('/api/products', {
+  async function start() {
+    await fetchCategories();
+    if (editId) {
+      document.getElementById('page-title').innerText = "📝 Редактирование";
+      document.getElementById('submit-btn').innerText = "Обновить данные";
+      await fetchProductData(editId);
+    }
+  }
+
+  async function fetchCategories() {
+    const res = await fetch('/api/products/categories');
+    const categories = await res.json();
+    const select = document.getElementById('category-select');
+    categories.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat.id;
+      opt.innerText = cat.title;
+      select.appendChild(opt);
+    });
+  }
+
+  async function fetchProductData(id) {
+    const res = await fetch(`/api/products/${id}`);
+    if (res.ok) {
+      const p = await res.json();
+      document.getElementById('product-id').value = p.id;
+      document.getElementById('name').value = p.name;
+      document.getElementById('price').value = p.price;
+      document.getElementById('originCountry').value = p.originCountry;
+      document.getElementById('specifications').value = p.specifications;
+      if (p.categories && p.categories.length > 0) {
+        document.getElementById('category-select').value = p.categories[0].id;
+      }
+    }
+  }
+
+  document.getElementById('product-form').onsubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+
+    const id = document.getElementById('product-id').value;
+    if (id) formData.append('id', id);
+
+    formData.append('name', document.getElementById('name').value);
+    formData.append('price', document.getElementById('price').value);
+    formData.append('originCountry', document.getElementById('originCountry').value);
+    formData.append('specifications', document.getElementById('specifications').value);
+
+    const catId = document.getElementById('category-select').value;
+    if (catId) formData.append('categoryId', catId);
+
+    const fileInput = document.getElementById('image');
+    if (fileInput.files[0]) formData.append('image', fileInput.files[0]);
+
+    const response = await fetch('/api/products', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(product)
+      body: formData
     });
 
-    if (resp.ok) window.location.href = 'index.html';
+    if (response.ok) {
+      window.location.href = "index.html";
+    } else {
+      alert("Ошибка при сохранении!");
+    }
   };
+
+  start();
 </script>
 </body>
 </html>
