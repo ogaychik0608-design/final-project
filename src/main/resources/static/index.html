@@ -314,12 +314,15 @@
     const grid = document.getElementById('products-grid');
 
     grid.innerHTML = data.content.map(p => `
-      <div class="col">
-        <div class="card product-card">
-          <img src="${p.imageName ? '/images/products/' + p.imageName : 'https://placehold.co/400x300?text=MyStore+KZ'}" class="product-img">
-          <div class="card-body p-4 d-flex flex-column">
-            <h5 class="fw-bold">${p.name}</h5>
-            <div class="specs-box mb-3">${p.specifications || 'Характеристики не указаны'}</div>
+  <div class="col">
+    <div class="card product-card">
+      <img src="${p.imageName ? '/images/products/' + p.imageName : 'https://placehold.co/400x300?text=MyStore+KZ'}" class="product-img">
+      <div class="card-body p-4 d-flex flex-column">
+        <h5 class="fw-bold">${p.name}</h5>
+
+        <div class="small text-muted mb-2">В наличии: <span class="fw-bold text-dark">${p.stockQuantity} шт.</span></div>
+
+        <div class="specs-box mb-3">${p.specifications || 'Характеристики не указаны'}</div>
             <div class="mt-auto">
               <div class="price-tag mb-3">${p.price.toLocaleString()} ₸</div>
               ${isAdmin ? `

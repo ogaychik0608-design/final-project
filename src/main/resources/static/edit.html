@@ -4,31 +4,65 @@
   <meta charset="UTF-8">
   <title>Редактирование — MyStore KZ</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f4f7f6;
+      font-family: 'Inter', sans-serif;
+    }
+    .card {
+      border: none;
+      border-radius: 15px
+    }
+    .form-control {
+      border-radius: 10px;
+      padding: 10px;
+      border: 1px solid #dee2e6;
+    }
+    .btn {
+      border-radius: 10px;
+      font-weight: 600;
+    }
+  </style>
 </head>
-<body class="bg-light p-5">
+<body class="p-5">
 <div class="container mt-5">
-  <div class="card shadow p-4 mx-auto" style="max-width: 700px;">
-    <h3 class="fw-bold mb-4"> Изменение товара</h3>
+  <div class="card shadow-lg p-4 mx-auto" style="max-width: 700px;">
+    <h3 class="fw-bold mb-4">Изменение товара</h3>
     <form id="editForm">
       <div class="mb-3">
-        <label class="form-label">Название</label>
+        <label class="form-label fw-bold">Название</label>
         <input type="text" id="name" class="form-control" required>
       </div>
       <div class="row mb-3">
-        <div class="col"><label class="form-label">Цена</label><input type="number" id="price" class="form-control"></div>
-        <div class="col"><label class="form-label">Страна</label><input type="text" id="originCountry" class="form-control"></div>
+        <div class="col">
+          <label class="form-label fw-bold">Цена (₸)</label>
+          <input type="number" id="price" class="form-control" required>
+        </div>
+        <div class="col">
+          <label class="form-label fw-bold">Количество</label>
+          <input type="number" id="stockQuantity" class="form-control" min="0" required>
+        </div>
       </div>
       <div class="mb-3">
-        <label class="form-label">Описание</label>
+        <label class="form-label fw-bold">Страна производства</label>
+        <input type="text" id="originCountry" class="form-control">
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-bold">Описание</label>
         <textarea id="description" class="form-control" rows="3"></textarea>
       </div>
       <div class="mb-4">
-        <label class="form-label">Характеристики</label>
+        <label class="form-label fw-bold">Характеристики</label>
         <textarea id="specifications" class="form-control" rows="2"></textarea>
       </div>
-      <div class="d-flex justify-content-between">
-        <a href="index.html" class="btn btn-secondary">Назад</a>
-        <button type="submit" class="btn btn-primary px-4">Сохранить</button>
+      <div class="mb-4">
+        <label class="form-label fw-bold">Изображение (оставьте пустым, чтобы не менять)</label>
+        <input type="file" id="image" class="form-control">
+      </div>
+      <div class="d-flex justify-content-between mt-4">
+        <a href="index.html" class="btn btn-outline-secondary px-4">Назад</a>
+        <button type="submit" class="btn btn-primary px-5">Сохранить</button>
       </div>
     </form>
   </div>
@@ -38,31 +72,48 @@
   const id = new URLSearchParams(window.location.search).get('id');
 
   async function loadData() {
+    if (!id) return;
     const res = await fetch('/api/products/' + id);
     const p = await res.json();
+
     document.getElementById('name').value = p.name;
     document.getElementById('price').value = p.price;
-    document.getElementById('originCountry').value = p.originCountry;
+    document.getElementById('stockQuantity').value = p.stockQuantity || 0; // Добавлено
+    document.getElementById('originCountry').value = p.originCountry || '';
     document.getElementById('description').value = p.description || '';
     document.getElementById('specifications').value = p.specifications || '';
   }
 
   document.getElementById('editForm').onsubmit = async (e) => {
     e.preventDefault();
-    const data = {
-      name: document.getElementById('name').value,
-      price: document.getElementById('price').value,
-      originCountry: document.getElementById('originCountry').value,
-      description: document.getElementById('description').value,
-      specifications: document.getElementById('specifications').value
-    };
-    await fetch('/api/products/' + id, {
-      method: 'PUT',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(data)
+
+    const formData = new FormData();
+    formData.append('id', id);
+    formData.append('name', document.getElementById('name').value);
+    formData.append('price', document.getElementById('price').value);
+    formData.append('stockQuantity', document.getElementById('stockQuantity').value); // Добавлено
+    formData.append('originCountry', document.getElementById('originCountry').value);
+    formData.append('description', document.getElementById('description').value);
+    formData.append('specifications', document.getElementById('specifications').value);
+
+    const fileInput = document.getElementById('image');
+    if (fileInput.files[0]) {
+      formData.append('image', fileInput.files[0]);
+    }
+
+    const res = await fetch('/api/products', {
+      method: 'POST',
+      body: formData
     });
-    window.location.href = 'index.html';
+
+    if (res.ok) {
+      alert("Товар успешно обновлен!");
+      window.location.href = 'index.html';
+    } else {
+      alert("Ошибка при сохранении");
+    }
   };
+
   loadData();
 </script>
 </body>
