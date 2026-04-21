@@ -76,6 +76,9 @@
     .btn-remove-item:hover {
       opacity: 0.7;
     }
+    /* Стили для активной пагинации */
+    .page-link { border-radius: 8px; margin: 0 3px; color: #212529; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; }
   </style>
 </head>
 <body>
@@ -114,6 +117,12 @@
 
 <div class="container">
   <div id="products-grid" class="row row-cols-1 row-cols-md-3 g-4"></div>
+</div>
+
+<div class="container mt-5 mb-5">
+  <nav>
+    <ul id="pagination-ul" class="pagination justify-content-center"></ul>
+  </nav>
 </div>
 
 <div class="modal fade" id="cartModal" tabindex="-1">
@@ -181,20 +190,10 @@
     document.getElementById('cart-count').innerText = count;
   }
 
-  // Функция удаления товара из корзины
   async function deleteCartItem(cartItemId) {
     if (!confirm("Удалить этот товар из корзины?")) return;
-
-    const res = await fetch(`/api/cart/remove/${cartItemId}`, {
-      method: 'DELETE'
-    });
-
-    if (res.ok) {
-      loadCart();
-      updateCartBadge();
-    } else {
-      alert("Ошибка при удалении");
-    }
+    const res = await fetch(`/api/cart/remove/${cartItemId}`, { method: 'DELETE' });
+    if (res.ok) { loadCart(); updateCartBadge(); }
   }
 
   async function loadCart() {
@@ -238,10 +237,7 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, email, password })
     });
-    if (res.ok) {
-      alert("Успешно! Теперь войдите.");
-      location.reload();
-    } else { alert("Ошибка регистрации"); }
+    if (res.ok) { alert("Успешно!"); location.reload(); }
   }
 
   async function handleLogin() {
@@ -265,7 +261,7 @@
   function handleSearch() {
     searchQuery = document.getElementById('search-input').value.trim();
     activeCategoryId = null;
-    loadProducts();
+    loadProducts(0);
   }
 
   async function loadCategories() {
@@ -286,17 +282,17 @@
     searchQuery = "";
     document.querySelectorAll('.category-btn').forEach(b => b.classList.replace('btn-primary', 'btn-outline-primary'));
     element.classList.replace('btn-outline-primary', 'btn-primary');
-    loadProducts();
+    loadProducts(0);
   }
 
   async function deleteProduct(id) {
     if (confirm("Удалить этот товар?")) {
       await fetch(`/api/products/${id}`, { method: 'DELETE' });
-      loadProducts();
+      loadProducts(0);
     }
   }
 
-  async function loadProducts() {
+  async function loadProducts(page = 0) {
     if (currentUser) {
       document.getElementById('login-btn').style.display = 'none';
       document.getElementById('logout-btn').style.display = 'block';
@@ -309,7 +305,7 @@
       }
     }
 
-    let url = '/api/products?page=0&size=12';
+    let url = `/api/products?page=${page}&size=6`;
     if (activeCategoryId) url += `&categoryId=${activeCategoryId}`;
     else if (searchQuery) url += `&search=${encodeURIComponent(searchQuery)}`;
 
@@ -339,10 +335,38 @@
         </div>
       </div>
     `).join('');
+
+    renderPagination(data);
+  }
+
+  function renderPagination(data) {
+    const paginationUl = document.getElementById('pagination-ul');
+    paginationUl.innerHTML = '';
+    if (data.totalPages <= 1) return;
+
+    // Назад
+    paginationUl.innerHTML += `
+      <li class="page-item ${data.first ? 'disabled' : ''}">
+        <button class="page-link" onclick="loadProducts(${data.number - 1})">←</button>
+      </li>`;
+
+    // Номера страниц
+    for (let i = 0; i < data.totalPages; i++) {
+      paginationUl.innerHTML += `
+        <li class="page-item ${i === data.number ? 'active' : ''}">
+          <button class="page-link" onclick="loadProducts(${i})">${i + 1}</button>
+        </li>`;
+    }
+
+    // Вперед
+    paginationUl.innerHTML += `
+      <li class="page-item ${data.last ? 'disabled' : ''}">
+        <button class="page-link" onclick="loadProducts(${data.number + 1})">→</button>
+      </li>`;
   }
 
   loadCategories();
-  loadProducts();
+  loadProducts(0);
 </script>
 </body>
 </html>
