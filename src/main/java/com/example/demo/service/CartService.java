@@ -22,7 +22,6 @@ public class CartService {
     private final UserRepository userRepository;
 
     public List<CartItemDTO> getCartDTO(User user) {
-        // Находим реального пользователя, чтобы получить его товары
         User realUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
